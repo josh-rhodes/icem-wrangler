@@ -42,19 +42,10 @@ def replace_numeric_null_values(df, cols_to_ignore=["recid", "hid"], null_value=
         - The ignored columns are prepended to the result via a horizontal concat,
           preserving their original values unchanged.
     """
-    # Isolate columns with valid 999999 values to remain unchanged.
-    recid_hid = df.select(pl.col(cols_to_ignore))
 
-    # On all remaining columns, select only signed integer types and replace `null_value` (e.g. 999999) with None
-    df = (
-        df.with_columns(pl.exclude(cols_to_ignore))
-          .with_columns(cs.signed_integer().replace({null_value: None}))
+    return df.with_columns(
+        (cs.signed_integer() - cs.by_name(cols_to_ignore)).replace({null_value: None})
     )
-
-    # Rejoin the isolated columns with the cleaned integer columns
-    # df = pl.concat([recid_hid, df], how="horizontal")
-
-    return df
 
 
 
